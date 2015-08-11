@@ -1,0 +1,178 @@
+//Raymond Luu
+//10/22/2012
+//TCSS 371 Mobus
+// HW 3 - fullAdder
+
+//code provided by Professor Mobus
+#include <stdio.h>
+#include "fullAdder.h"
+#include "bit_def.h"
+
+
+int mask_array[] =
+        {BIT_0_MASK_REG,
+        BIT_1_MASK_REG,
+        BIT_2_MASK_REG,
+        BIT_3_MASK_REG,
+        BIT_4_MASK_REG,
+        BIT_5_MASK_REG,
+        BIT_6_MASK_REG,
+        BIT_7_MASK_REG,
+        BIT_8_MASK_REG,
+        BIT_9_MASK_REG,
+        BIT_A_MASK_REG,
+        BIT_B_MASK_REG,
+        BIT_C_MASK_REG,
+        BIT_D_MASK_REG,
+        BIT_E_MASK_REG,
+        BIT_F_MASK_REG};
+
+int main() {
+
+    int valueA, valueB;
+    int operation = 0;
+    int reg_A, reg_B, reg_R;
+
+
+/* Data entry. Note that users may enter negative numbers, but they must be 15-bit magnitude */
+
+    printf("ALU Simulation\nEnter operands as 15-bit 2s-complement numbers\n");
+    printf("Input first operand: ");
+    scanf("%x", &valueA);
+    printf("\nInput second operand: ");
+    scanf("%x", &valueB);
+
+    reg_A = (valueA & LOB_MASK);
+    reg_B = (valueB & LOB_MASK);
+
+    reg_R = add(reg_A, reg_B);
+
+     printf("\nResult: %X\n", reg_R);
+    printf("\n\n%X\n", reg_A);
+    printf("%X\n", reg_B);
+    printf("Sign of A: %c\n", signOf(reg_A)?'-':'+');
+    printf("Sign of B: %c\n", signOf(reg_B)?'-':'+');
+    printf("AND 1, 0 = %d\n", and_gate((short)1,(short)0));
+    printf("AND 1, 1 = %d\n", and_gate((short)1,(short)1));
+    printf("OR 1, 0 = %d\n", or_gate((short)1,(short)0));
+    printf("OR 1, 1 = %d\n", or_gate((short)1,(short)1));
+    printf("OR 0, 0 = %d\n", or_gate((short)0,(short)0));
+
+
+}
+
+int signOf(int operand) {
+    return((operand & SIGN_MASK)?1:0);
+}
+
+
+/*
+*=========================================================================================
+*
+* add()
+*
+* Synopsis:
+* This function simulates a ripple carry adder for 16-bit 2's complement numbers. It examines
+* each bit of both operands starting at bit 0 and call functions in the full adder library to
+* determine the sum and carry forward bits.
+*
+*=========================================================================================
+*/
+
+int add(int a, int b) {
+    int result=0;
+
+    int s=0, c=0;        /* result and carry; carry in for bit 0 is 0 */
+    int bit_a, bit_b;
+    int i, n, mag=0;
+
+    for(i=0; i<16; i++) {
+        bit_a = ((mask_array[i] & a)?1:0);
+        bit_b = ((mask_array[i] & b)?1:0);
+        printf("bitA%d: %d  bitB%d: %d\n",i,bit_a,i,bit_b);
+        s = gate8(gate0(bit_a,bit_b,c),gate3(bit_a,bit_b,c),
+            gate5(bit_a,bit_b,c),gate6(bit_a,bit_b,c));
+        c = gate9(gate0(bit_a,bit_b,c),gate1(bit_a,bit_b,c),
+            gate2(bit_a,bit_b,c),gate4(bit_a,bit_b,c));  /* carry bit forward to next loop */
+        printf("sum: %d   carry: %d\n",s,c);
+        if (i==0) mag = 1;
+        else {
+            mag = 1;
+            for (n=0; n<i; n++) mag = mag * 2;
+        }
+        if (s > 0) result = result + mag;
+    }
+    return result;
+}
+
+
+int and_gate(int A, int B) {
+    A = (A)?1:0;
+    B = (B)?1:0;
+    return((A & B)?1:0);
+}
+
+int or_gate(int A, int B) {
+    A = (A)?1:0;
+    B = (B)?1:0;
+    return ((A|B)?1:0);
+}
+
+int not_gate(int A) {
+    A = (A)?0:1;
+    return A;
+}
+
+short mask_bit_0(short bit) {
+    return (bit & BIT_0_MASK);
+}
+
+/*
+*=========================================================================================
+* This set of functions simulate a full adder. They emulate the full adder logic circuit
+* found in the text book on page 62.
+*
+*=========================================================================================
+*/
+
+int gate8(int gate_0, int gate_3, int gate_5, int gate_6) {
+    int r;
+
+    r = or_gate(or_gate(or_gate(gate_0,gate_3),gate_5),gate_6);
+    return r;
+}
+
+int gate9(int gate_0, int gate_1, int gate_2, int gate_4) {
+    int r;
+
+    r = or_gate(or_gate(or_gate(gate_0,gate_1),gate_2),gate_4);
+    return r;
+}
+
+int gate0(int bit_a, int bit_b, int carry) {
+    return and_gate(and_gate(bit_a,bit_b),carry);
+}
+
+int gate1(int bit_a, int bit_b, int carry) {
+    return and_gate(and_gate(bit_a,bit_b),not_gate(carry));
+}
+
+int gate2(int bit_a, int bit_b, int carry) {
+    return and_gate(and_gate(bit_a,not_gate(bit_b)),carry);
+}
+
+int gate3(int bit_a, int bit_b, int carry) {
+    return and_gate(and_gate(bit_a,not_gate(bit_b)),not_gate(carry));
+}
+
+int gate4(int bit_a, int bit_b, int carry) {
+    return and_gate(and_gate(not_gate(bit_a),bit_b),carry);
+}
+
+int gate5(int bit_a, int bit_b, int carry) {
+    return and_gate(and_gate(not_gate(bit_a),bit_b),not_gate(carry));
+}
+
+int gate6(int bit_a, int bit_b, int carry) {
+    return and_gate(and_gate(not_gate(bit_a),not_gate(bit_b)),carry);
+}

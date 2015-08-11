@@ -1,0 +1,192 @@
+//Raymond Luu
+//10/22/2012
+//TCSS 371 Mobus
+// HW 3 - fullAdder
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "fullAdder.h"
+
+bit fullAdder (bit a, bit b, bit c_in, bit * c_out)
+{
+	//Some code from Professor Mobus 
+    bit result=0;
+
+    bit s=0, c=c_in;        /* result and carry; carry in for bit 0 is 0 */
+		
+        printf("bitA: %d  bitB: %d\n",a,b);
+        s = gate8(gate0(a,b,c),gate3(a,b,c),
+            gate5(a,b,c),gate6(a,b,c));
+        c = gate9(gate0(a,b,c),gate1(a,b,c),
+            gate2(a,b,c),gate4(a,b,c));  /* carry bit forward to next loop */
+        printf("sum: %d   carry: %d\n",s,c);
+		
+        // if (i==0) mag = 1;
+        // else {
+            // mag = 1;
+            // for (n=0; n<i; n++) mag = mag * 2;
+        // }
+        // if (s > 0) result = result + mag;
+    return result;
+	
+	}
+
+bit gate8(bit gate_0, bit gate_3, bit gate_5, bit gate_6) {
+    bit r;
+
+    r = or(or(or(gate_0,gate_3),gate_5),gate_6);
+    return r;
+}
+
+bit gate9(bit gate_0, bit gate_1, bit gate_2, bit gate_4) {
+    bit r;
+
+    r = or(or(or(gate_0,gate_1),gate_2),gate_4);
+    return r;
+}
+
+bit gate0(bit bit_a, bit bit_b, bit carry) {
+    return and(and(bit_a,bit_b),carry);
+}
+
+bit gate1(bit bit_a, bit bit_b, bit carry) {
+    return and(and(bit_a,bit_b),not(carry));
+}
+
+bit gate2(bit bit_a, bit bit_b, bit carry) {
+    return and(and(bit_a,not(bit_b)),carry);
+}
+
+bit gate3(bit bit_a, bit bit_b, bit carry) {
+    return and(and(bit_a,not(bit_b)),not(carry));
+}
+
+bit gate4(bit bit_a, bit bit_b, bit carry) {
+    return and(and(not(bit_a),bit_b),carry);
+}
+
+bit gate5(bit bit_a, bit bit_b, bit carry) {
+    return and(and(not(bit_a),bit_b),not(carry));
+}
+
+bit gate6(bit bit_a, bit bit_b, bit carry) {
+    return and(and(not(bit_a),not(bit_b)),carry);
+}
+
+RippleCarryAdderPtr rippleCarryAdderConstructor(void) {
+	RippleCarryAdderPtr rippleCarryAdder = (RippleCarryAdderPtr) malloc(sizeof(RippleCarryAdderPtr));
+	rippleCarryAdder->A = 0;
+	rippleCarryAdder->B = 0;
+	rippleCarryAdder->R = 0;
+	rippleCarryAdder->flags = 0;
+	return rippleCarryAdder;
+}
+int rippleCarryAdderSetRegisters(RippleCarryAdderPtr this, unsigned short A, unsigned short B) {
+	
+}
+
+int main()
+{
+//Some code given by Professor Mobus
+    int valueA, valueB;
+
+	RippleCarryAdderPtr rca = rippleCarryAdderConstructor();
+	
+// /* Data entry. Note that users may enter negative numbers, but they must be 15-bit magnitude */
+
+    printf("ALU Simulation\nEnter operands as 15-bit 2s-complement numbers\n");
+    printf("Input first operand: ");
+    scanf("%x", &valueA);
+    printf("\nInput second operand: ");
+    scanf("%x", &valueB);
+	
+	rippleCarryAdderSetRegisters
+    reg_A = (valueA & LOB_MASK);
+    reg_B = (valueB & LOB_MASK);
+
+    // reg_R = add(reg_A, reg_B);
+
+     // printf("\nResult: %X\n", reg_R);
+    // printf("\n\n%X\n", reg_A);
+    // printf("%X\n", reg_B);
+    // printf("Sign of A: %c\n", signOf(reg_A)?'-':'+');
+    // printf("Sign of B: %c\n", signOf(reg_B)?'-':'+');
+    // printf("AND 1, 0 = %d\n", and_gate((short)1,(short)0));
+    // printf("AND 1, 1 = %d\n", and_gate((short)1,(short)1));
+    // printf("OR 1, 0 = %d\n", or_gate((short)1,(short)0));
+    // printf("OR 1, 1 = %d\n", or_gate((short)1,(short)1));
+    // printf("OR 0, 0 = %d\n", or_gate((short)0,(short)0));
+	
+	fullAdder(valueA, valueB, 0, 0);
+}
+
+--------------------------------------------------------------------------
+
+#include "bit_def.h"
+
+//Code provided by Professor Mobus
+#define SIGN_MASK 0x00008000 /* mask = 00000000000000001000000000000000 */
+                             /*                        ^
+                             /* bit 15 ----------------+
+                             /* tests the sign bit of a 16 bit number   */
+#define LOB_MASK 0x0000ffff
+#define BIT_0_MASK (short)0x0001
+#define BIT_0_MASK_REG 0x00000001
+#define BIT_1_MASK_REG 0x00000002
+#define BIT_2_MASK_REG 0x00000004
+#define BIT_3_MASK_REG 0x00000008
+#define BIT_4_MASK_REG 0x00000010
+#define BIT_5_MASK_REG 0x00000020
+#define BIT_6_MASK_REG 0x00000040
+#define BIT_7_MASK_REG 0x00000080
+#define BIT_8_MASK_REG 0x00000100
+#define BIT_9_MASK_REG 0x00000200
+#define BIT_A_MASK_REG 0x00000400
+#define BIT_B_MASK_REG 0x00000800
+#define BIT_C_MASK_REG 0x00001000
+#define BIT_D_MASK_REG 0x00002000
+#define BIT_E_MASK_REG 0x00004000
+#define BIT_F_MASK_REG 0x00008000
+
+typedef unsigned short Register;
+
+typedef struct {
+	bit a;
+	bit b;
+	bit c_in;
+	bit r;
+	bit c_out;
+} FullAdder;
+
+typedef FullAdder * FullAdderPtr;
+
+// prototype -
+bit fullAdder (bit a, bit b, bit c_in, bit * c_out);
+
+//Some code given by Professor Mobus
+bit gate8(bit, bit, bit, bit);
+bit gate9(bit, bit, bit, bit);
+bit gate0(bit, bit, bit);
+bit gate1(bit, bit, bit);
+bit gate2(bit, bit, bit);
+bit gate3(bit, bit, bit);
+bit gate4(bit, bit, bit);
+bit gate5(bit, bit, bit);
+bit gate6(bit, bit, bit);
+
+
+
+
+typedef struct {
+	FullAdder adders[16]; // or #define number of adders
+	Register A, B, R;
+	unsigned char flags; // flags[0]=O, flags[1]=C, flags[2]=Z, flags[3]=N
+} RippleCarryAdder;
+
+typedef RippleCarryAdder * RippleCarryAdderPtr;
+
+// prototypes
+int rippleCarryAdderSetRegisters(RippleCarryAdderPtr this, unsigned short A, unsigned short B);
+int rippleCarryAdderAdd(RippleCarryAdderPtr this); // returns error code if a problem occurred
+unsigned short rippleCarryAdderGetResult(RippleCarryAdderPtr, int * error);  // error is an integer for error codes
+unsigned char rippleCarryAdderGetFlags(RippleCarryAdderPtr this, int * error);
